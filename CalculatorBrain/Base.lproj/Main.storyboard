@@ -8,7 +8,7 @@
         <!--Calculator View Controller-->
         <scene sceneID="m7g-Hd-BJV">
             <objects>
-                <viewController id="7qh-oF-HSD" customClass="CalculatorViewController" customModule="Calculator" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="7qh-oF-HSD" customClass="CalculatorViewController" customModule="CalculatorBrain" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="7dp-BE-SoA"/>
                         <viewControllerLayoutGuide type="bottom" id="VNJ-RB-8rX"/>
@@ -170,7 +170,7 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="24"/>
                                 <state key="normal" title="π"/>
                                 <connections>
-                                    <action selector="operate:" destination="7qh-oF-HSD" eventType="touchUpInside" id="dm5-bo-Jkm"/>
+                                    <action selector="pi" destination="7qh-oF-HSD" eventType="touchUpInside" id="zNZ-cS-Hb6"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="kFf-2k-aFA">
