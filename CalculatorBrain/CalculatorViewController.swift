@@ -19,7 +19,7 @@ class CalculatorViewController: UIViewController {
 
     @IBAction func clear() {
         brain.clearStack()
-        displayValue = defaultDisplayValue
+        displayValue = nil
         history.text = " "
     }
     
@@ -60,11 +60,7 @@ class CalculatorViewController: UIViewController {
             }
         } else {
             appendHistory(" ᐩ/- ")
-            if let result = brain.performOperation("ᐩ/-") {
-                displayValue = result
-            } else {
-                displayValue = defaultDisplayValue
-            }
+            displayValue = brain.performOperation("ᐩ/-")
         }
     }
     
@@ -86,14 +82,12 @@ class CalculatorViewController: UIViewController {
         if let operation = sender.currentTitle {
             appendHistory(" \(operation) ")
             appendHistory(" = ")
-            
-            if let result = brain.performOperation(operation) {
-                displayValue = result
-            } else {
-                displayValue = defaultDisplayValue
-            }
+            displayValue = brain.performOperation(operation)
         }
     }
+    
+    // Because displayValue is now an Optional Double the task of showing a suitable (result, zero, error)
+    // display text can be safely handed over to the setter of displayValue.
     
     var displayValue: Double? {
         get {
