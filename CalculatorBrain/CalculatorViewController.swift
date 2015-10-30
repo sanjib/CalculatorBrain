@@ -19,6 +19,7 @@ class CalculatorViewController: UIViewController {
 
     @IBAction func clear() {
         brain.clearStack()
+        brain.variableValues.removeAll()
         displayValue = nil
         history.text = " "
     }
@@ -70,9 +71,24 @@ class CalculatorViewController: UIViewController {
             enter()
         }
         appendHistory(" π ")
-        displayValue = M_PI
-        enter()
+        displayValue = brain.pushConstant("π")
     }
+    
+    @IBAction func setM() {
+        userIsInTheMiddleOfTypingANumber = false
+        if displayValue != nil {
+            brain.variableValues["M"] = displayValue
+        }
+        displayValue = brain.evaluate()
+    }
+    
+    @IBAction func getM() {
+        if userIsInTheMiddleOfTypingANumber {
+            appendHistory(display.text!)
+            enter()
+        }
+        displayValue = brain.pushOperand("M")
+    }    
     
     @IBAction func operate(sender: UIButton) {
         if userIsInTheMiddleOfTypingANumber {

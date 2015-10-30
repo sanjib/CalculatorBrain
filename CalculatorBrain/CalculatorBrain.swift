@@ -12,6 +12,8 @@ class CalculatorBrain {
     
     private enum Op: CustomStringConvertible {
         case Operand(Double)
+        case Variable(String)
+        case Constant(String, Double)
         case UnaryOperation(String, Double -> Double)
         case BinaryOperation(String, (Double, Double) -> Double)
         
@@ -19,6 +21,10 @@ class CalculatorBrain {
             switch self {
             case .Operand(let operand):
                 return "\(operand)"
+            case .Variable(let symbol):
+                return "\(symbol)"
+            case .Constant(let symbol, _):
+                return "\(symbol)"
             case .UnaryOperation(let symbol, _):
                 return symbol
             case .BinaryOperation(let symbol, _):
@@ -29,6 +35,7 @@ class CalculatorBrain {
     
     private var opStack = [Op]()
     private var knownOps = [String:Op]()
+    var variableValues = [String:Double]()
     
     init() {
         func learnOp(op: Op) {
@@ -42,6 +49,7 @@ class CalculatorBrain {
         learnOp(Op.BinaryOperation("+", +))
         learnOp(Op.BinaryOperation("÷") { $1 / $0 })
         learnOp(Op.BinaryOperation("−") { $1 - $0 })
+        learnOp(Op.Constant("π", M_PI))
     }
     
     private func evaluate(ops: [Op]) -> (result: Double?, remainingOps: [Op]) {
@@ -51,6 +59,14 @@ class CalculatorBrain {
             switch op {
             case .Operand(let operand):
                 return (operand, remainingOps)
+            case .Variable(let symbol):
+                if let variableValue = variableValues[symbol] {
+                    return (variableValue, remainingOps)
+                } else {
+                    return (nil, remainingOps)
+                }
+            case .Constant(_, let constantValue):
+                return (constantValue, remainingOps)
             case .UnaryOperation(_, let operation):
                 let operandEvaluation = evaluate(remainingOps)
                 if let operand = operandEvaluation.result {
@@ -81,6 +97,18 @@ class CalculatorBrain {
     
     func pushOperand(operand: Double) -> Double? {
         opStack.append(Op.Operand(operand))
+        return evaluate()
+    }
+    
+    func pushOperand(symbol: String) -> Double? {
+        opStack.append(Op.Variable(symbol))
+        return evaluate()
+    }
+    
+    func pushConstant(symbol: String) -> Double? {
+        if let constant = knownOps[symbol] {
+            opStack.append(constant)
+        }        
         return evaluate()
     }
     
