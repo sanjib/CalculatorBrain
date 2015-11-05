@@ -20,7 +20,12 @@ class CalculatorBrain {
         var description: String {
             switch self {
             case .Operand(let operand):
-                return "\(operand)"
+                let intValue = Int(operand)
+                if Double(intValue) == operand {
+                    return "\(intValue)"
+                } else {
+                    return "\(operand)"
+                }
             case .Variable(let symbol):
                 return "\(symbol)"
             case .Constant(let symbol, _):
@@ -31,11 +36,27 @@ class CalculatorBrain {
                 return symbol
             }
         }
+        
+        var precedence: Int {
+            switch self {
+            case .Operand(_), .Variable(_), .Constant(_, _), .UnaryOperation(_, _):
+                return Int.max
+            case .BinaryOperation(_, _):
+                return Int.min
+            }
+        }
     }
     
     private var opStack = [Op]()
     private var knownOps = [String:Op]()
     var variableValues = [String:Double]()
+    
+    // Describes contents of the brain (var opStack)
+    var description: String {
+        let (descriptionArray, _) = description([String](), ops: opStack)
+        let descriptionString = descriptionArray.joinWithSeparator(", ")
+        return descriptionString
+    }
     
     init() {
         func learnOp(op: Op) {
@@ -50,6 +71,51 @@ class CalculatorBrain {
         learnOp(Op.BinaryOperation("÷") { $1 / $0 })
         learnOp(Op.BinaryOperation("−") { $1 - $0 })
         learnOp(Op.Constant("π", M_PI))
+    }
+    
+    private func description(currentDescription: [String], ops: [Op]) -> (accumulatedDescription: [String], remainingOps: [Op]) {
+        var accumulatedDescription = currentDescription
+        if !ops.isEmpty {
+            var remainingOps = ops
+            let op = remainingOps.removeFirst()
+            switch op {
+            case .Operand(_), .Variable(_), .Constant(_, _):
+                accumulatedDescription.append(op.description)
+                return description(accumulatedDescription, ops: remainingOps)
+            case .UnaryOperation(let symbol, _):
+                if !accumulatedDescription.isEmpty {
+                    let unaryOperand = accumulatedDescription.removeLast()
+                    accumulatedDescription.append(symbol + "(\(unaryOperand))")
+                    let (newDescription, remainingOps) = description(accumulatedDescription, ops: remainingOps)
+                    return (newDescription, remainingOps)
+                }
+            case .BinaryOperation(let symbol, _):
+                if !accumulatedDescription.isEmpty {
+                    let binaryOpearndLast = accumulatedDescription.removeLast()
+                    if !accumulatedDescription.isEmpty {
+                        let binaryOpearndFirst = accumulatedDescription.removeLast()
+                        
+                        if op.precedence == remainingOps.first?.precedence {
+                            if op.description == remainingOps.first?.description {
+                                accumulatedDescription.append("\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast)")
+                            } else {
+                                accumulatedDescription.append("(\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast))")
+                            }
+                        } else {
+                            accumulatedDescription.append("\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast)")
+                        }
+                        return description(accumulatedDescription, ops: remainingOps)
+                    } else {
+                        accumulatedDescription.append("?" + symbol + "\(binaryOpearndLast)")
+                        return description(accumulatedDescription, ops: remainingOps)
+                    }
+                } else {
+                    accumulatedDescription.append("?" + symbol + "?")
+                    return description(accumulatedDescription, ops: remainingOps)
+                }
+            }
+        }
+        return (accumulatedDescription, ops)
     }
     
     private func evaluate(ops: [Op]) -> (result: Double?, remainingOps: [Op]) {

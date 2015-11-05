@@ -35,17 +35,8 @@ class CalculatorViewController: UIViewController {
             userIsInTheMiddleOfTypingANumber = true
         }
     }
-    
-    private func appendHistory(value: String) {
-        // Remove the last " = "
-        if (value != " = ") && (history.text!.rangeOfString(" = ") != nil) {
-            history.text = history.text!.stringByReplacingOccurrencesOfString(" = ", withString: "")
-        }
-        history.text = history.text! + value
-    }
 
     @IBAction func backspace(sender: UIButton) {
-        appendHistory(" \(sender.currentTitle!) ")
         if display.text!.characters.count > 1 {
             display.text = String(display.text!.characters.dropLast())
         } else {
@@ -60,17 +51,14 @@ class CalculatorViewController: UIViewController {
                 userIsInTheMiddleOfTypingANumber = true
             }
         } else {
-            appendHistory(" ᐩ/- ")
             displayValue = brain.performOperation("ᐩ/-")
         }
     }
     
     @IBAction func pi() {
         if userIsInTheMiddleOfTypingANumber {
-            appendHistory(display.text!)
             enter()
         }
-        appendHistory(" π ")
         displayValue = brain.pushConstant("π")
     }
     
@@ -84,7 +72,6 @@ class CalculatorViewController: UIViewController {
     
     @IBAction func getM() {
         if userIsInTheMiddleOfTypingANumber {
-            appendHistory(display.text!)
             enter()
         }
         displayValue = brain.pushOperand("M")
@@ -92,18 +79,16 @@ class CalculatorViewController: UIViewController {
     
     @IBAction func operate(sender: UIButton) {
         if userIsInTheMiddleOfTypingANumber {
-            appendHistory(display.text!)
             enter()
         }
         if let operation = sender.currentTitle {
-            appendHistory(" \(operation) ")
-            appendHistory(" = ")
             displayValue = brain.performOperation(operation)
         }
     }
     
     // Because displayValue is now an Optional Double the task of showing a suitable (result, zero, error)
-    // display text can be safely handed over to the setter of displayValue.
+    // display text can be safely handed over to the setter of displayValue. Additionally history is also 
+    // now assigned in the setter
     
     var displayValue: Double? {
         get {
@@ -119,19 +104,11 @@ class CalculatorViewController: UIViewController {
                 display.text = "\(defaultDisplayValue)"
             }
             userIsInTheMiddleOfTypingANumber = false
+            history.text = " \(brain.description) ="
         }
     }
-
-    // Overload the enter function for user input, because we want add to add it the history. The enter
-    // function is also called from other places in the code where we don't want to add to history.
     
-    @IBAction func enter(sender: UIButton) {
-        appendHistory(display.text!)
-        appendHistory(" ⏎ ")
-        enter()
-    }
-    
-    private func enter() {
+    @IBAction func enter() {
         userIsInTheMiddleOfTypingANumber = false
         if displayValue != nil {
             if let result = brain.pushOperand(displayValue!) {
@@ -141,6 +118,6 @@ class CalculatorViewController: UIViewController {
             }
         }
     }
-
+    
 }
 

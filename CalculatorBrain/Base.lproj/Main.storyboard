@@ -114,7 +114,7 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="24"/>
                                 <state key="normal" title="⏎"/>
                                 <connections>
-                                    <action selector="enter:" destination="7qh-oF-HSD" eventType="touchUpInside" id="Ri0-E2-qlQ"/>
+                                    <action selector="enter" destination="7qh-oF-HSD" eventType="touchUpInside" id="ROe-ca-RVU"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KdS-8r-YkH">
