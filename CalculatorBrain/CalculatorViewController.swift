@@ -14,6 +14,7 @@ class CalculatorViewController: UIViewController {
     
     var userIsInTheMiddleOfTypingANumber = false
     private let defaultDisplayValue: Double = 0
+    private let defaultHistoryText = " "
     
     var brain = CalculatorBrain()
 
@@ -21,7 +22,7 @@ class CalculatorViewController: UIViewController {
         brain.clearStack()
         brain.variableValues.removeAll()
         displayValue = nil
-        history.text = " "
+        history.text = defaultHistoryText
     }
     
     @IBAction func appendDigit(sender: UIButton) {
@@ -36,12 +37,18 @@ class CalculatorViewController: UIViewController {
         }
     }
 
-    @IBAction func backspace(sender: UIButton) {
-        if display.text!.characters.count > 1 {
-            display.text = String(display.text!.characters.dropLast())
+    @IBAction func undo() {
+        if userIsInTheMiddleOfTypingANumber == true {
+            if display.text!.characters.count > 1 {
+                display.text = String(display.text!.characters.dropLast())
+            } else {
+                displayValue = defaultDisplayValue
+            }
         } else {
-            displayValue = defaultDisplayValue
+            brain.removeLastOpFromStack()
+            displayValue = brain.evaluate()
         }
+
     }
     
     @IBAction func changeSign() {
@@ -104,7 +111,11 @@ class CalculatorViewController: UIViewController {
                 display.text = "\(defaultDisplayValue)"
             }
             userIsInTheMiddleOfTypingANumber = false
-            history.text = " \(brain.description) ="
+            if !brain.description.isEmpty {
+                history.text = " \(brain.description) ="
+            } else {
+                history.text = defaultHistoryText
+            }            
         }
     }
     

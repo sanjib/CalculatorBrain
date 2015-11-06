@@ -191,10 +191,10 @@
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Zst-NF-AlC">
                                 <rect key="frame" x="469.5" y="103" width="102.5" height="91.5"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
-                                <state key="normal" title="⇤"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="22"/>
+                                <state key="normal" title="Undo"/>
                                 <connections>
-                                    <action selector="backspace:" destination="7qh-oF-HSD" eventType="touchUpInside" id="csI-ds-9xM"/>
+                                    <action selector="undo" destination="7qh-oF-HSD" eventType="touchUpInside" id="4k6-th-n9R"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="sta-HI-ya3">

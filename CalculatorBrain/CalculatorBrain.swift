@@ -54,8 +54,7 @@ class CalculatorBrain {
     // Describes contents of the brain (var opStack)
     var description: String {
         let (descriptionArray, _) = description([String](), ops: opStack)
-        let descriptionString = descriptionArray.joinWithSeparator(", ")
-        return descriptionString
+        return descriptionArray.joinWithSeparator(", ")
     }
     
     init() {
@@ -102,8 +101,17 @@ class CalculatorBrain {
                                 accumulatedDescription.append("(\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast))")
                             }
                         } else {
-                            accumulatedDescription.append("\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast)")
+                            if op.description == remainingOps.first?.description {
+                                accumulatedDescription.append("\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast)")
+                            } else {
+                                if !remainingOps.isEmpty {
+                                    accumulatedDescription.append("(\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast))")
+                                } else {
+                                    accumulatedDescription.append("\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast)")
+                                }                                
+                            }
                         }
+                        
                         return description(accumulatedDescription, ops: remainingOps)
                     } else {
                         accumulatedDescription.append("?" + symbol + "\(binaryOpearndLast)")
@@ -159,6 +167,12 @@ class CalculatorBrain {
     
     func clearStack() {
         opStack = [Op]()
+    }
+    
+    func removeLastOpFromStack() {
+        if opStack.last != nil {
+            opStack.removeLast()
+        }
     }
     
     func pushOperand(operand: Double) -> Double? {
