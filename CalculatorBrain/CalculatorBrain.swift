@@ -8,6 +8,11 @@
 
 import Foundation
 
+enum CalculatorBrainEvaluationResult {
+    case Success(Double)
+    case Failure(String)
+}
+
 class CalculatorBrain {
     
     private enum Op: CustomStringConvertible {
@@ -50,6 +55,7 @@ class CalculatorBrain {
     private var opStack = [Op]()
     private var knownOps = [String:Op]()
     var variableValues = [String:Double]()
+    private var error: String?
     
     // Describes contents of the brain (var opStack)
     var description: String {
@@ -90,31 +96,17 @@ class CalculatorBrain {
                 }
             case .BinaryOperation(let symbol, _):
                 if !accumulatedDescription.isEmpty {
-                    let binaryOpearndLast = accumulatedDescription.removeLast()
+                    let binaryOperandLast = accumulatedDescription.removeLast()
                     if !accumulatedDescription.isEmpty {
-                        let binaryOpearndFirst = accumulatedDescription.removeLast()
-                        
-                        if op.precedence == remainingOps.first?.precedence {
-                            if op.description == remainingOps.first?.description {
-                                accumulatedDescription.append("\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast)")
-                            } else {
-                                accumulatedDescription.append("(\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast))")
-                            }
+                        let binaryOperandFirst = accumulatedDescription.removeLast()                        
+                        if op.description == remainingOps.first?.description || op.precedence == remainingOps.first?.precedence {
+                            accumulatedDescription.append("(\(binaryOperandFirst)" + symbol + "\(binaryOperandLast))")
                         } else {
-                            if op.description == remainingOps.first?.description {
-                                accumulatedDescription.append("\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast)")
-                            } else {
-                                if !remainingOps.isEmpty {
-                                    accumulatedDescription.append("(\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast))")
-                                } else {
-                                    accumulatedDescription.append("\(binaryOpearndFirst)" + symbol + "\(binaryOpearndLast)")
-                                }                                
-                            }
+                            accumulatedDescription.append("\(binaryOperandFirst)" + symbol + "\(binaryOperandLast)")
                         }
-                        
                         return description(accumulatedDescription, ops: remainingOps)
                     } else {
-                        accumulatedDescription.append("?" + symbol + "\(binaryOpearndLast)")
+                        accumulatedDescription.append("?" + symbol + "\(binaryOperandLast)")
                         return description(accumulatedDescription, ops: remainingOps)
                     }
                 } else {
@@ -159,10 +151,30 @@ class CalculatorBrain {
         return (nil, ops)
     }
     
-    func evaluate() -> Double? {
+    private func evaluate() -> Double? {
         let (result, remainder) = evaluate(opStack)
         print("\(opStack) = \(result) with \(remainder) left over")
         return result
+    }
+    
+    func evaluateAndReportErrors() -> CalculatorBrainEvaluationResult {
+        if let evaluationResult = evaluate() {
+            if evaluationResult.isInfinite {
+                return CalculatorBrainEvaluationResult.Failure("Error: Infinite value!")
+            } else if evaluationResult.isNaN {
+                return CalculatorBrainEvaluationResult.Failure("Error: Not a number!")
+            } else {
+                return CalculatorBrainEvaluationResult.Success(evaluationResult)
+            }
+        } else {
+            if let returnError = error {
+                // We consumed the error, now set error back to nil
+                error = nil
+                return CalculatorBrainEvaluationResult.Failure(returnError)
+            } else {
+                return CalculatorBrainEvaluationResult.Failure("Error!")
+            }
+        }
     }
     
     func clearStack() {
@@ -175,28 +187,28 @@ class CalculatorBrain {
         }
     }
     
-    func pushOperand(operand: Double) -> Double? {
+    func pushOperand(operand: Double) -> CalculatorBrainEvaluationResult? {
         opStack.append(Op.Operand(operand))
-        return evaluate()
+        return evaluateAndReportErrors()
     }
     
-    func pushOperand(symbol: String) -> Double? {
+    func pushOperand(symbol: String) -> CalculatorBrainEvaluationResult? {
         opStack.append(Op.Variable(symbol))
-        return evaluate()
+        return evaluateAndReportErrors()
     }
     
-    func pushConstant(symbol: String) -> Double? {
+    func pushConstant(symbol: String) -> CalculatorBrainEvaluationResult? {
         if let constant = knownOps[symbol] {
             opStack.append(constant)
         }        
-        return evaluate()
+        return evaluateAndReportErrors()
     }
     
-    func performOperation(symbol: String) -> Double? {
+    func performOperation(symbol: String) -> CalculatorBrainEvaluationResult? {
         if let operation = knownOps[symbol] {
             opStack.append(operation)
         }
-        return evaluate()
+        return evaluateAndReportErrors()
     }
     
 }

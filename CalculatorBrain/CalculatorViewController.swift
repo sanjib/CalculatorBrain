@@ -12,8 +12,12 @@ class CalculatorViewController: UIViewController {
     @IBOutlet weak var display: UILabel!
     @IBOutlet weak var history: UILabel!
     
+    private struct DefaultDisplayResult {
+        static let Startup: Double = 0
+        static let Error = "Error!"
+    }
+    
     var userIsInTheMiddleOfTypingANumber = false
-    private let defaultDisplayValue: Double = 0
     private let defaultHistoryText = " "
     
     var brain = CalculatorBrain()
@@ -21,14 +25,14 @@ class CalculatorViewController: UIViewController {
     @IBAction func clear() {
         brain.clearStack()
         brain.variableValues.removeAll()
-        displayValue = nil
+        displayResult = CalculatorBrainEvaluationResult.Success(DefaultDisplayResult.Startup)
         history.text = defaultHistoryText
     }
     
     @IBAction func appendDigit(sender: UIButton) {
         let digit = sender.currentTitle!
         if userIsInTheMiddleOfTypingANumber {
-            if (digit != ".") || (digit == "." && display.text!.rangeOfString(".") == nil) {
+            if digit != "." || display.text!.rangeOfString(".") == nil {
                 display.text = display.text! + digit
             }
         } else {
@@ -42,23 +46,24 @@ class CalculatorViewController: UIViewController {
             if display.text!.characters.count > 1 {
                 display.text = String(display.text!.characters.dropLast())
             } else {
-                displayValue = defaultDisplayValue
+                displayResult = CalculatorBrainEvaluationResult.Success(DefaultDisplayResult.Startup)
             }
         } else {
             brain.removeLastOpFromStack()
-            displayValue = brain.evaluate()
+            displayResult = brain.evaluateAndReportErrors()
         }
-
     }
     
     @IBAction func changeSign() {
         if userIsInTheMiddleOfTypingANumber {
             if displayValue != nil {
-                displayValue = displayValue! * -1
+                displayResult = CalculatorBrainEvaluationResult.Success(displayValue! * -1)
+                
+                // set userIsInTheMiddleOfTypingANumber back to true as displayResult will set it to false
                 userIsInTheMiddleOfTypingANumber = true
             }
         } else {
-            displayValue = brain.performOperation("ᐩ/-")
+            displayResult = brain.performOperation("ᐩ/-")
         }
     }
     
@@ -66,22 +71,22 @@ class CalculatorViewController: UIViewController {
         if userIsInTheMiddleOfTypingANumber {
             enter()
         }
-        displayValue = brain.pushConstant("π")
+        displayResult = brain.pushConstant("π")
     }
     
     @IBAction func setM() {
         userIsInTheMiddleOfTypingANumber = false
         if displayValue != nil {
-            brain.variableValues["M"] = displayValue
+            brain.variableValues["M"] = displayValue!
         }
-        displayValue = brain.evaluate()
+        displayResult = brain.evaluateAndReportErrors()
     }
     
     @IBAction func getM() {
         if userIsInTheMiddleOfTypingANumber {
             enter()
         }
-        displayValue = brain.pushOperand("M")
+        displayResult = brain.pushOperand("M")
     }    
     
     @IBAction func operate(sender: UIButton) {
@@ -89,7 +94,7 @@ class CalculatorViewController: UIViewController {
             enter()
         }
         if let operation = sender.currentTitle {
-            displayValue = brain.performOperation(operation)
+            displayResult = brain.performOperation(operation)
         }
     }
     
@@ -97,36 +102,48 @@ class CalculatorViewController: UIViewController {
     // display text can be safely handed over to the setter of displayValue. Additionally history is also 
     // now assigned in the setter
     
-    var displayValue: Double? {
+    private var displayValue: Double? {
+        if let displayValue = NSNumberFormatter().numberFromString(display.text!) {
+            return displayValue.doubleValue
+        }
+        return nil
+    }
+    
+    var displayResult: CalculatorBrainEvaluationResult? {
         get {
-            if let displayValue = NSNumberFormatter().numberFromString(display.text!) {
-                return displayValue.doubleValue
+            if let displayValue = displayValue {
+                return .Success(displayValue)
             }
-            return nil
+            if display.text != nil {
+                return .Failure(display.text!)
+            }
+            return .Failure("Error")
         }
         set {
             if newValue != nil {
-                display.text = "\(newValue!)"
+                switch newValue! {
+                case let .Success(displayValue):
+                    display.text = "\(displayValue)"
+                case let .Failure(error):
+                    display.text = error
+                }
             } else {
-                display.text = "\(defaultDisplayValue)"
+                display.text = DefaultDisplayResult.Error
             }
             userIsInTheMiddleOfTypingANumber = false
+            
             if !brain.description.isEmpty {
                 history.text = " \(brain.description) ="
             } else {
                 history.text = defaultHistoryText
-            }            
+            }
         }
     }
     
     @IBAction func enter() {
         userIsInTheMiddleOfTypingANumber = false
         if displayValue != nil {
-            if let result = brain.pushOperand(displayValue!) {
-                displayValue = result
-            } else {
-                displayValue = defaultDisplayValue
-            }
+            displayResult = brain.pushOperand(displayValue!)
         }
     }
     
