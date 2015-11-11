@@ -129,6 +129,7 @@ class CalculatorBrain {
                 if let variableValue = variableValues[symbol] {
                     return (variableValue, remainingOps)
                 } else {
+                    error = "\(symbol) is not set"
                     return (nil, remainingOps)
                 }
             case .Constant(_, let constantValue):
@@ -137,6 +138,8 @@ class CalculatorBrain {
                 let operandEvaluation = evaluate(remainingOps)
                 if let operand = operandEvaluation.result {
                     return (operation(operand), operandEvaluation.remainingOps)
+                } else {
+                    error = "Missing unary operand"
                 }
             case .BinaryOperation(_, let operation):
                 let op1Evaluation = evaluate(remainingOps)
@@ -144,7 +147,11 @@ class CalculatorBrain {
                     let op2Evaluation = evaluate(op1Evaluation.remainingOps)
                     if let operand2 = op2Evaluation.result {
                         return (operation(operand1, operand2), op2Evaluation.remainingOps)
+                    } else {
+                        error = "Missing binary operand"
                     }
+                } else {
+                    error = "Missing binary operand"
                 }
             }
         }
@@ -160,9 +167,9 @@ class CalculatorBrain {
     func evaluateAndReportErrors() -> CalculatorBrainEvaluationResult {
         if let evaluationResult = evaluate() {
             if evaluationResult.isInfinite {
-                return CalculatorBrainEvaluationResult.Failure("Error: Infinite value!")
+                return CalculatorBrainEvaluationResult.Failure("Infinite value")
             } else if evaluationResult.isNaN {
-                return CalculatorBrainEvaluationResult.Failure("Error: Not a number!")
+                return CalculatorBrainEvaluationResult.Failure("Not a number")
             } else {
                 return CalculatorBrainEvaluationResult.Success(evaluationResult)
             }
@@ -172,7 +179,7 @@ class CalculatorBrain {
                 error = nil
                 return CalculatorBrainEvaluationResult.Failure(returnError)
             } else {
-                return CalculatorBrainEvaluationResult.Failure("Error!")
+                return CalculatorBrainEvaluationResult.Failure("Error")
             }
         }
     }
